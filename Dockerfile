@@ -5,7 +5,7 @@ WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@12.14.0 --activate
 
-COPY package.json pnpm-lock.yaml* tsconfig.json nest-cli.json ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* tsconfig.json nest-cli.json ./
 RUN pnpm install --frozen-lockfile || pnpm install
 
 COPY src/ ./src/
@@ -23,7 +23,7 @@ ENV PORT=4000
 
 RUN corepack enable && corepack prepare pnpm@12.14.0 --activate
 
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
 RUN pnpm install --prod --frozen-lockfile || pnpm install --prod
 
 COPY --from=builder /app/dist ./dist
@@ -38,6 +38,6 @@ USER nestjs
 EXPOSE 4000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:4000/api/v1/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:4000/health || exit 1
 
 CMD ["node", "dist/src/main"]

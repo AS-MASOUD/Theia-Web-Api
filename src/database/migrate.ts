@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-import postgres from "postgres";
+import postgres = require("postgres");
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 

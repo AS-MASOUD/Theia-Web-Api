@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-import postgres from "postgres";
+import postgres = require("postgres");
 import { drizzle } from "drizzle-orm/postgres-js";
 import { eq } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
