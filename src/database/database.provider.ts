@@ -1,5 +1,5 @@
 import { Provider } from "@nestjs/common";
-import postgres from "postgres";
+import postgres = require("postgres");
 import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
 

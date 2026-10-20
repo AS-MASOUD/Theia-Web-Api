@@ -10,7 +10,7 @@ export class HealthController {
     @Inject(REDIS_CLIENT) private readonly cache: CacheClient,
   ) {}
 
-  @Get(["health", "api/v1/health"])
+  @Get("health")
   async checkHealth() {
     let dbStatus = "ok";
     let redisStatus = "ok";
