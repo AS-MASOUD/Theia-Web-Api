@@ -13,6 +13,9 @@ export interface CreateArticleDto {
   title: string;
   summary: string;
   content: string;
+  articleType?: "blog" | "news";
+  coverImage?: string;
+  tags?: string;
   readingTime?: string;
   authorName?: string;
   authorRole?: string;
@@ -24,6 +27,9 @@ export interface UpdateArticleDto {
   title?: string;
   summary?: string;
   content?: string;
+  articleType?: "blog" | "news";
+  coverImage?: string;
+  tags?: string;
   readingTime?: string;
   authorName?: string;
   authorRole?: string;
@@ -38,6 +44,7 @@ export class ArticlesService {
   async listPublished(params: {
     categorySlug?: string;
     search?: string;
+    articleType?: "blog" | "news";
     page?: number;
     limit?: number;
   }) {
@@ -46,6 +53,10 @@ export class ArticlesService {
     const offset = (page - 1) * limit;
 
     const conditions = [eq(articles.isPublished, true)];
+
+    if (params.articleType) {
+      conditions.push(eq(articles.articleType, params.articleType));
+    }
 
     if (params.search) {
       const q = `%${params.search}%`;
@@ -72,6 +83,9 @@ export class ArticlesService {
         slug: articles.slug,
         title: articles.title,
         summary: articles.summary,
+        articleType: articles.articleType,
+        coverImage: articles.coverImage,
+        tags: articles.tags,
         readingTime: articles.readingTime,
         authorName: articles.authorName,
         authorRole: articles.authorRole,
@@ -113,6 +127,9 @@ export class ArticlesService {
         title: articles.title,
         summary: articles.summary,
         content: articles.content,
+        articleType: articles.articleType,
+        coverImage: articles.coverImage,
+        tags: articles.tags,
         readingTime: articles.readingTime,
         authorName: articles.authorName,
         authorRole: articles.authorRole,
@@ -146,8 +163,14 @@ export class ArticlesService {
     return article;
   }
 
-  async listAllAdmin(page = 1, limit = 20) {
+  async listAllAdmin(page = 1, limit = 50, articleType?: "blog" | "news") {
     const offset = (page - 1) * limit;
+
+    const conditions = [];
+    if (articleType) {
+      conditions.push(eq(articles.articleType, articleType));
+    }
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
     const items = await this.db
       .select({
@@ -155,22 +178,28 @@ export class ArticlesService {
         slug: articles.slug,
         title: articles.title,
         summary: articles.summary,
+        articleType: articles.articleType,
+        coverImage: articles.coverImage,
+        tags: articles.tags,
         readingTime: articles.readingTime,
         authorName: articles.authorName,
         isPublished: articles.isPublished,
         viewsCount: articles.viewsCount,
         publishedAt: articles.publishedAt,
+        categoryId: articles.categoryId,
         categoryName: categories.nameFa,
       })
       .from(articles)
       .leftJoin(categories, eq(articles.categoryId, categories.id))
+      .where(whereClause)
       .orderBy(desc(articles.createdAt))
       .limit(limit)
       .offset(offset);
 
     const [countResult] = await this.db
       .select({ total: sql<number>`count(*)::int` })
-      .from(articles);
+      .from(articles)
+      .where(whereClause);
 
     return {
       items,
@@ -178,6 +207,20 @@ export class ArticlesService {
       page,
       limit,
     };
+  }
+
+  async getByIdAdmin(id: number) {
+    const [article] = await this.db
+      .select()
+      .from(articles)
+      .where(eq(articles.id, id))
+      .limit(1);
+
+    if (!article) {
+      throw new NotFoundException("مطلب مورد نظر یافت نشد.");
+    }
+
+    return article;
   }
 
   async create(dto: CreateArticleDto) {
@@ -198,10 +241,13 @@ export class ArticlesService {
         title: dto.title,
         summary: dto.summary,
         content: dto.content,
+        articleType: dto.articleType || "blog",
+        coverImage: dto.coverImage || null,
+        tags: dto.tags || null,
         readingTime: dto.readingTime || "۵ دقیقه",
         authorName: dto.authorName || "تیم تحریریه تیا",
         authorRole: dto.authorRole || "کارشناس بازار",
-        categoryId: dto.categoryId,
+        categoryId: dto.categoryId || null,
         isPublished: dto.isPublished ?? true,
       })
       .returning();

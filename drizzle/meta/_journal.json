@@ -8,6 +8,20 @@
       "when": 1792446180922,
       "tag": "0000_swift_cassandra_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793079787559,
+      "tag": "0001_great_drax",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793082873429,
+      "tag": "0002_great_professor_monster",
+      "breakpoints": true
     }
   ]
 }

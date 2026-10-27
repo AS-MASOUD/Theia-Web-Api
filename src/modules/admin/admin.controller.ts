@@ -2,16 +2,22 @@ import {
   Controller,
   Post,
   Get,
+  Put,
+  Delete,
   Body,
+  Param,
   Req,
   Res,
   UseGuards,
   HttpCode,
   HttpStatus,
   BadRequestException,
+  ParseIntPipe,
 } from "@nestjs/common";
-import { AdminService } from "./admin.service";
+import { AdminService, CreateStaffDto, UpdateStaffDto } from "./admin.service";
 import { AdminAuthGuard } from "../../common/guards/admin-auth.guard";
+import { RolesGuard } from "../../common/guards/roles.guard";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { CurrentUser, AdminUserPayload } from "../../common/decorators/current-user.decorator";
 
 interface LoginDto {
@@ -19,11 +25,11 @@ interface LoginDto {
   password: string;
 }
 
-@Controller("admin/auth")
+@Controller("admin")
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  @Post("login")
+  @Post("auth/login")
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() body: LoginDto,
@@ -52,16 +58,61 @@ export class AdminController {
     return result;
   }
 
-  @Post("logout")
+  @Post("auth/logout")
   @HttpCode(HttpStatus.OK)
   async logout(@Res({ passthrough: true }) res: any) {
     res.clearCookie("theia_admin_token", { path: "/" });
     return { success: true, message: "با موفقیت خارج شدید." };
   }
 
-  @Get("me")
+  @Get("auth/me")
   @UseGuards(AdminAuthGuard)
   async getMe(@CurrentUser() user: AdminUserPayload) {
     return this.adminService.getProfile(user.sub);
+  }
+
+  @Get("stats")
+  @UseGuards(AdminAuthGuard)
+  async getStats() {
+    return this.adminService.getDashboardStats();
+  }
+
+  // --- Role & Staff Management (Admin Only) ---
+  @Get("users")
+  @UseGuards(AdminAuthGuard, RolesGuard)
+  @Roles("admin")
+  async listStaff() {
+    return this.adminService.listStaffUsers();
+  }
+
+  @Post("users")
+  @UseGuards(AdminAuthGuard, RolesGuard)
+  @Roles("admin")
+  async createStaff(@Body() dto: CreateStaffDto) {
+    if (!dto.email || !dto.password || !dto.fullName) {
+      throw new BadRequestException("نام، ایمیل و کلمه عبور الزامی است.");
+    }
+    return this.adminService.createStaffUser(dto);
+  }
+
+  @Put("users/:id")
+  @UseGuards(AdminAuthGuard, RolesGuard)
+  @Roles("admin")
+  async updateStaff(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() dto: UpdateStaffDto,
+    @CurrentUser() user: AdminUserPayload,
+  ) {
+    return this.adminService.updateStaffUser(id, dto, user.sub);
+  }
+
+  @Delete("users/:id")
+  @UseGuards(AdminAuthGuard, RolesGuard)
+  @Roles("admin")
+  async deleteStaff(
+    @Param("id", ParseIntPipe) id: number,
+    @CurrentUser() user: AdminUserPayload,
+  ) {
+    return this.adminService.deleteStaffUser(id, user.sub);
   }
 }

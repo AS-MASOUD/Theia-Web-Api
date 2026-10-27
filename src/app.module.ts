@@ -9,6 +9,8 @@ import { FaqModule } from "./modules/faq/faq.module";
 import { ReleasesModule } from "./modules/releases/releases.module";
 import { MarketFeedModule } from "./modules/market-feed/market-feed.module";
 import { HealthModule } from "./modules/health/health.module";
+import { CommentsModule } from "./modules/comments/comments.module";
+import { MarketSignalsModule } from "./modules/market-signals/market-signals.module";
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { HealthModule } from "./modules/health/health.module";
     ReleasesModule,
     MarketFeedModule,
     HealthModule,
+    CommentsModule,
+    MarketSignalsModule,
   ],
 })
 export class AppModule {}
