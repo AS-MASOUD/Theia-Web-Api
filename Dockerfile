@@ -3,7 +3,7 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@12.14.0 --activate
+RUN npm install -g pnpm@12.14.0
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* tsconfig.json nest-cli.json ./
 RUN pnpm install --frozen-lockfile || pnpm install
@@ -21,11 +21,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=4000
 
-RUN corepack enable && corepack prepare pnpm@12.14.0 --activate
-
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
-RUN pnpm install --prod --frozen-lockfile || pnpm install --prod
-
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle ./drizzle
 
